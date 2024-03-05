@@ -1,0 +1,4 @@
+venv
+assets
+dataset/
+trained_model/

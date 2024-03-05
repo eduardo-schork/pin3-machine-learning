@@ -1,0 +1,137 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de Imagem</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            margin: 20px auto;
+            max-width: 400px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        h2,
+        table {
+            margin-top: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Upload de Imagem</h2>
+
+    <form id="imageForm" method="post" enctype="multipart/form-data">
+        <label for="imageUpload">Selecione uma imagem:</label>
+        <input type="file" accept="image/*" capture="camera" name="image" id="imageUpload" required>
+        <br>
+        <input type="submit" value="Enviar" onclick="predictImage()">
+    </form>
+
+    <h2>Resultados da Predição</h2>
+    <table id="predictionTable" border="1">
+        <tr>
+            <th>Modelo</th>
+            <th>Classe Predominante</th>
+        </tr>
+    </table>
+
+    <script>
+         function predictImage() {
+            var formData = new FormData(document.getElementById("imageForm"));
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "https://9bf0-2804-18-10b7-351-8c4f-f9f1-9643-8ea8.ngrok-free.app/predict", true);
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    // Manipular a resposta JSON
+                    var response = JSON.parse(xhr.responseText);
+                    displayResults(response);
+                } else {
+                    console.error("Erro ao realizar a solicitação.");
+                }
+            };
+
+            xhr.send(formData);
+            event.preventDefault();
+        }
+
+        function displayResults(results) {
+            var table = document.getElementById("predictionTable");
+
+            for (var i = table.rows.length - 1; i > 0; i--) {
+                table.deleteRow(i);
+            }
+
+            for (var model in results) {
+                var row = table.insertRow(table.rows.length);
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+
+                cell1.innerHTML = model;
+                cell2.innerHTML = results[model].predominant_class;
+            }
+        }
+    </script>
+
+</body>
+</html>

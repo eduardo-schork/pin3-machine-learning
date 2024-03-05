@@ -1,0 +1,1 @@
+mkdir -p assets/{strawberry,peach,pomegranate} && mkdir -p trained_model/{vgg16,inceptionv3,convnet}
