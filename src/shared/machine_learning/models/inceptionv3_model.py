@@ -4,7 +4,6 @@ from shared.machine_learning.save_model import save_model
 from tensorflow.keras.applications import InceptionV3
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
-from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers.legacy import Adam
 
 

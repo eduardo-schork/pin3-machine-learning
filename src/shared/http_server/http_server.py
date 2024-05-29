@@ -15,7 +15,7 @@ convnet_model = load_latest_model("convnet")
 app = Flask(__name__)
 CORS(
     app,
-    # origins="http://192.168.0.127:3000",
+    origins="http://192.168.4.12:3000",
     methods=["GET", "POST", "OPTIONS"],
     allow_headers="*",
 )
@@ -48,11 +48,11 @@ def preprocess_image(img):
 
 @app.route("/predict", methods=["POST"])
 def predict_all_models():
-    img_array = preprocess_image(request.files.get("image"))
-    if img_array is None:
-        return jsonify({"error": "Imagem inválida"}), 400
-
     try:
+        img_array = preprocess_image(request.files.get("image"))
+        if img_array is None:
+            return jsonify({"error": "Imagem inválida"}), 400
+
         vgg16_prediction = vgg16_model.predict(img_array)
         vgg16_output = format_predict_output(vgg16_prediction[0])
 

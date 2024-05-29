@@ -57,11 +57,11 @@ if __name__ == "__main__":
 
     test_set = preprocess_image_set(test_dir)
 
-    # print("\nAvaliação do Modelo VGG16:")
-    # evaluate_model(model_vgg16, test_set)
+    print("\nAvaliação do Modelo VGG16:")
+    evaluate_model(model_vgg16, test_set)
 
-    # print("\nAvaliação do Modelo InceptionV3:")
-    # evaluate_model(model_inceptionv3, test_set)
+    print("\nAvaliação do Modelo InceptionV3:")
+    evaluate_model(model_inceptionv3, test_set)
 
     print("\nAvaliação do Modelo convnet:")
     convnet_test_set = preprocess_validation_set_convnet(test_dir)

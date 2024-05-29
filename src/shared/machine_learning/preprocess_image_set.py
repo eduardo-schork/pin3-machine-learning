@@ -3,9 +3,6 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 classes_order = ["strawberry", "peach", "pomegranate"]
 
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-
 # FIX preprocess_image_set_convnet and preprocess_validation_set_convnet methods,
 # isolate and reuse logic
 

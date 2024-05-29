@@ -99,7 +99,7 @@
             var formData = new FormData(document.getElementById("imageForm"));
 
             var xhr = new XMLHttpRequest();
-            xhr.open("POST", "https://9bf0-2804-18-10b7-351-8c4f-f9f1-9643-8ea8.ngrok-free.app/predict", true);
+            xhr.open("POST", "http://192.168.4.12:3000/predict", true);
 
             xhr.onload = function () {
                 if (xhr.status === 200) {

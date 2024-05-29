@@ -54,7 +54,7 @@ def train_convnet_model():
     model_instance = create_model(num_classes)
 
     training_set = preprocess_image_set_convnet("dataset/training_set")
-    validation_set = preprocess_validation_set_convnet("dataset/training_set")
+    validation_set = preprocess_validation_set_convnet("dataset/validation_set")
 
     print("Treinando o modelo convnet...")
     model_instance.fit(
