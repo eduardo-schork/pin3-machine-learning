@@ -23,7 +23,7 @@ firebase_admin.initialize_app(cred)
 app = Flask(__name__)
 CORS(
     app,
-    origins="http://192.168.4.12:3000",
+    origins="http://192.168.1.13:3000",
     methods=["GET", "POST", "OPTIONS"],
     allow_headers="*",
 )
@@ -84,6 +84,55 @@ def login():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    name = data.get("name")
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password or not name:
+        return jsonify({"error": "Name, email and password are required"}), 400
+
+    try:
+        file_path = "./google-services-key.json"
+        with open(file_path, "r") as file:
+            firebase_api_key = json.load(file)["apiKey"]
+
+        FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={firebase_api_key}"
+        response = requests.post(
+            FIREBASE_AUTH_URL,
+            json={"email": email, "password": password, "returnSecureToken": True},
+        )
+
+        response_data = response.json()
+
+        if "error" in response_data:
+            return jsonify({"error": response_data["error"]["message"]}), 401
+
+        id_token = response_data.get("idToken")
+
+        user = auth.get_user_by_email(email)
+        auth.update_user(user.uid, display_name=name)
+
+        return jsonify({"token": id_token}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/logoff", methods=["POST"])
+def logoff():
+    try:
+        user_id = _getRequestAuthToken(request)
+        
+        if not user_id:
+            return jsonify({"error": "User ID is missing"}), 400
+
+        auth.revoke_refresh_tokens(user_id)
+
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def preprocess_image(img):
     try:
