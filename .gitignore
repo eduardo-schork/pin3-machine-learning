@@ -2,3 +2,6 @@ venv
 assets
 dataset/
 trained_model/
+
+service-account-key.json
+google-services-key.json

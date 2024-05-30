@@ -1,4 +1,6 @@
+import json
 import traceback
+import requests
 
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
@@ -12,6 +14,12 @@ vgg16_model = load_latest_model("vgg16")
 inceptionv3_model = load_latest_model("inceptionv3")
 convnet_model = load_latest_model("convnet")
 
+import firebase_admin
+from firebase_admin import credentials, auth
+
+cred = credentials.Certificate("./service-account-key.json")
+firebase_admin.initialize_app(cred)
+
 app = Flask(__name__)
 CORS(
     app,
@@ -24,6 +32,57 @@ CORS(
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+def _getRequestAuthToken(request):
+    token = request.headers.get("Authorization").split(" ")[1]
+
+    decoded_token = auth.verify_id_token(token)
+    uid = decoded_token["uid"]
+    return uid
+
+
+@app.route("/secure-endpoint", methods=["POST"])
+def secure_endpoint():
+    try:
+        uid = _getRequestAuthToken(request)
+        # Busque os dados do usuário no Firebase
+        user = auth.get_user(uid)
+        return jsonify({"status": "success", "user": user.__dict__}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 401
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
+
+    try:
+        file_path = "./google-services-key.json"
+        with open(file_path, "r") as file:
+            firebase_api_key = json.load(file)["apiKey"]
+
+        FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={firebase_api_key}"
+        response = requests.post(
+            FIREBASE_AUTH_URL,
+            json={"email": email, "password": password, "returnSecureToken": True},
+        )
+
+        response_data = response.json()
+
+        if "error" in response_data:
+            return jsonify({"error": response_data["error"]["message"]}), 401
+
+        id_token = response_data.get("idToken")
+        return jsonify({"token": id_token}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 def preprocess_image(img):
@@ -49,6 +108,8 @@ def preprocess_image(img):
 @app.route("/predict", methods=["POST"])
 def predict_all_models():
     try:
+        uid = _getRequestAuthToken(request)
+        print(uid)
         img_array = preprocess_image(request.files.get("image"))
         if img_array is None:
             return jsonify({"error": "Imagem inválida"}), 400
