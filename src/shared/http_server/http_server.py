@@ -46,9 +46,16 @@ def _getRequestAuthToken(request):
 def secure_endpoint():
     try:
         uid = _getRequestAuthToken(request)
-        # Busque os dados do usuário no Firebase
+
         user = auth.get_user(uid)
-        return jsonify({"status": "success", "user": user.__dict__}), 200
+        
+        user_data = {
+            "uid": user.uid,
+            "email": user.email,
+            "name": user.display_name,
+        }
+
+        return jsonify({"status": "success", "user": user_data}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 401
 
@@ -124,7 +131,7 @@ def register():
 def logoff():
     try:
         user_id = _getRequestAuthToken(request)
-        
+
         if not user_id:
             return jsonify({"error": "User ID is missing"}), 400
 
