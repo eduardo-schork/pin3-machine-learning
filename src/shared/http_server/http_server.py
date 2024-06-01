@@ -2,13 +2,16 @@ import json
 import traceback
 import requests
 
-from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from tensorflow.keras.preprocessing.image import img_to_array
 
 from shared.http_server.format_predict_output import format_predict_output
 from shared.http_server.validate_image_input import validate_image_input
 from shared.machine_learning.load_latest_model import load_latest_model
+
+from flask import Flask, request, jsonify, render_template
+from firebase_admin import credentials, initialize_app, storage, db
+from google.cloud import storage as gcs
 
 vgg16_model = load_latest_model("vgg16")
 inceptionv3_model = load_latest_model("inceptionv3")
@@ -18,15 +21,87 @@ import firebase_admin
 from firebase_admin import credentials, auth
 
 cred = credentials.Certificate("./service-account-key.json")
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(
+    cred,
+    {
+        "storageBucket": "gs://pin3-42a6f.appspot.com",
+        "databaseURL": "https://pin3-42a6f-default-rtdb.firebaseio.com/",
+    },
+)
+
+gcs_client = gcs.Client.from_service_account_json("./service-account-key.json")
+bucket = gcs_client.bucket("post-images")
 
 app = Flask(__name__)
 CORS(
     app,
-    origins="http://192.168.1.13:3000",
+    origins="http://192.168.4.12:3000",
     methods=["GET", "POST", "OPTIONS"],
     allow_headers="*",
 )
+
+
+@app.route("/post_feed", methods=["POST"])
+def post_feed():
+    if "image" not in request.files:
+        return jsonify({"error": "Image is required"}), 400
+
+    user_id = request.form.get("user_id")
+    image = request.files["image"]
+    predicted_percentage = request.form.get("predicted_percentage")
+    predicted_class = request.form.get("predicted_class")
+    feedback_class = request.form.get("feedback_class")
+    model_type = request.form.get("model_type")
+
+    if (
+        not user_id
+        or not predicted_percentage
+        or not predicted_class
+        or not feedback_class
+        or not model_type
+    ):
+        return jsonify({"error": "All fields are required"}), 400
+
+    try:
+        blob = bucket.blob(f"{user_id}/{image.filename}")
+        blob.upload_from_file(image, content_type=image.content_type)
+        image_url = blob.public_url
+
+        ref = db.reference("tb_feed")
+        new_post = ref.push(
+            {
+                "user_id": user_id,
+                "image_url": image_url,
+                "predicted_percentage": predicted_percentage,
+                "predicted_class": predicted_class,
+                "feedback_class": feedback_class,
+                "model_type": model_type,
+            }
+        )
+
+        return jsonify({"status": "success", "post_id": new_post.key}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/get_posts", methods=["GET"])
+def get_posts():
+    try:
+        ref = db.reference("tb_feed")
+        posts = ref.get()
+
+        posts_list = []
+        if posts:
+            for key, value in posts.items():
+                post = value
+                post["id"] = key
+                posts_list.append(post)
+
+        return jsonify({"status": "success", "posts": posts_list}), 200
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route("/")
@@ -48,7 +123,7 @@ def secure_endpoint():
         uid = _getRequestAuthToken(request)
 
         user = auth.get_user(uid)
-        
+
         user_data = {
             "uid": user.uid,
             "email": user.email,
@@ -91,6 +166,7 @@ def login():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
@@ -115,6 +191,7 @@ def register():
         response_data = response.json()
 
         if "error" in response_data:
+            print(response_data)
             return jsonify({"error": response_data["error"]["message"]}), 401
 
         id_token = response_data.get("idToken")
@@ -126,6 +203,7 @@ def register():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/logoff", methods=["POST"])
 def logoff():
@@ -140,6 +218,7 @@ def logoff():
         return jsonify({"status": "success"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 def preprocess_image(img):
     try:
