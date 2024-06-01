@@ -41,7 +41,7 @@ CORS(
 )
 
 
-@app.route("/post_feed", methods=["POST"])
+@app.route("/post-feed", methods=["POST"])
 def post_feed():
     if "image" not in request.files:
         return jsonify({"error": "Image is required"}), 400
@@ -85,7 +85,7 @@ def post_feed():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/get_posts", methods=["GET"])
+@app.route("/get-posts", methods=["GET"])
 def get_posts():
     try:
         ref = db.reference("tb_feed")
