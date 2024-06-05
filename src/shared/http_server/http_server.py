@@ -37,7 +37,7 @@ app = Flask(__name__)
 
 CORS(
     app,
-    origins="http://192.168.4.12:3000",
+    origins="http://192.168.1.13:3000",
     methods=["GET", "POST", "OPTIONS"],
     allow_headers="*",
 )
@@ -45,11 +45,14 @@ CORS(
 
 @app.route("/post-feed", methods=["POST"])
 def post_feed():
-    if "image" not in request.files:
+    image = request.files.get["image"]
+    if image is null:
+        print("Image is required")
         return jsonify({"error": "Image is required"}), 400
 
     user_id = request.form.get("user_id")
-    image = request.files["image"]
+    #send_notification_to_user(user_id)
+    
     predicted_percentage = request.form.get("predicted_percentage")
     predicted_class = request.form.get("predicted_class")
     feedback_class = request.form.get("feedback_class")
@@ -62,6 +65,7 @@ def post_feed():
         or not feedback_class
         or not model_type
     ):
+        print("All fields are required")
         return jsonify({"error": "All fields are required"}), 400
 
     try:
@@ -84,8 +88,27 @@ def post_feed():
         return jsonify({"status": "success", "post_id": new_post.key}), 201
 
     except Exception as e:
+        print(str(e))
         return jsonify({"error": str(e)}), 500
 
+def send_notification_to_user(uid):
+    console.log("oi")
+    user_ref = db.reference("users").child(user_id)
+    user_data = user_ref.get()
+    if user_data and "device_token" in user_data:
+        device_token = user_data["device_token"]
+        # Construir a mensagem da notificação
+        message = messaging.Message(
+            data={
+                "title": "Nova postagem",
+                "body": "Uma nova postagem foi feita.",
+                #"post_id": new_post.key  # Se necessário, você pode incluir o ID da postagem na notificação
+            },
+            token=device_token,
+        )
+        # Enviar a notificação
+        response = messaging.send(message)
+        print("Successfully sent message:", response)
 
 @app.route("/get-posts", methods=["GET"])
 def get_posts():
@@ -131,7 +154,7 @@ def secure_endpoint():
             "email": user.email,
             "name": user.display_name,
         }
-
+        send_notification_to_user(user.id)
         return jsonify({"status": "success", "user": user_data}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 401
@@ -249,6 +272,7 @@ def predict_all_models():
     try:
         uid = _getRequestAuthToken(request)
         print(uid)
+        
         img_array = preprocess_image(request.files.get("image"))
         if img_array is None:
             return jsonify({"error": "Imagem inválida"}), 400
