@@ -4,13 +4,10 @@ import tensorflow as tf
 
 
 def load_latest_model(model_type):
-    # Diretório base para os modelos treinados
     base_dir = "../trained_model"
 
-    # Diretório específico para o tipo de modelo (vgg16 ou inceptionv3)
     model_dir = os.path.join(base_dir, model_type)
 
-    # Encontrar a última versão existente
     existing_versions = [
         int(d.split("v")[-1])
         for d in os.listdir(model_dir)
@@ -21,10 +18,8 @@ def load_latest_model(model_type):
     if latest_version == 0:
         raise ValueError("Nenhum modelo treinado encontrado.")
 
-    # Caminho para o modelo mais recente
     latest_model_path = os.path.join(model_dir, f"v{latest_version}")
 
-    # Encontrar o nome do arquivo do modelo dentro do diretório da versão mais recente
     model_files = [f for f in os.listdir(latest_model_path) if f.endswith("_model.h5")]
 
     if not model_files:
@@ -32,12 +27,10 @@ def load_latest_model(model_type):
             f"Nenhum arquivo de modelo (.h5) encontrado em {latest_model_path}"
         )
 
-    # Carregar o modelo
     latest_model_file = model_files[0]
     latest_model_path = os.path.join(latest_model_path, latest_model_file)
 
     loaded_model = tf.keras.models.load_model(latest_model_path)
-    # loaded_model = load_model(latest_model_path)
 
     print(latest_model_path)
 

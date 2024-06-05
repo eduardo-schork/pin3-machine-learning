@@ -32,7 +32,9 @@ firebase_admin.initialize_app(
 gcs_client = gcs.Client.from_service_account_json("./service-account-key.json")
 bucket = gcs_client.bucket("post-images")
 
+
 app = Flask(__name__)
+
 CORS(
     app,
     origins="http://192.168.4.12:3000",
@@ -156,6 +158,8 @@ def login():
         )
 
         response_data = response.json()
+
+        print(response_data)
 
         if "error" in response_data:
             return jsonify({"error": response_data["error"]["message"]}), 401

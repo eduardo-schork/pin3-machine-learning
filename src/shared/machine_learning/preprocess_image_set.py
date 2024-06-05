@@ -39,6 +39,13 @@ def preprocess_image_set_convnet(path, validation_split=0.2, batch_size=32):
 def preprocess_validation_set_convnet(path, validation_split=0.2, batch_size=32):
     datagen = ImageDataGenerator(
         rescale=1.0 / 255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        rotation_range=20,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        fill_mode="nearest",
         validation_split=validation_split,
     )
 

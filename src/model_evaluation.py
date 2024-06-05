@@ -49,7 +49,7 @@ def plot_confusion_matrix(cm, class_names):
 
 if __name__ == "__main__":
     # Diretórios dos conjuntos de teste
-    test_dir = "/Users/eduardo-schork/workspace/pin3-ml/src/dataset/test_set"
+    test_dir = "dataset/test_set"
 
     model_vgg16 = load_latest_model("vgg16")
     model_inceptionv3 = load_latest_model("inceptionv3")
