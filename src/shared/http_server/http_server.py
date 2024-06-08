@@ -154,7 +154,6 @@ def secure_endpoint():
             "email": user.email,
             "name": user.display_name,
         }
-        send_notification_to_user(user.id)
         return jsonify({"status": "success", "user": user_data}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 401
@@ -191,6 +190,7 @@ def login():
         return jsonify({"token": id_token}), 200
 
     except Exception as e:
+        print(e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -225,6 +225,29 @@ def register():
 
         user = auth.get_user_by_email(email)
         auth.update_user(user.uid, display_name=name)
+
+        return jsonify({"token": id_token}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/anonymSign", methods=["POST"])
+def anonymSign():
+    try:
+        file_path = "./google-services-key.json"
+        with open(file_path, "r") as file:
+            firebase_api_key = json.load(file)["apiKey"]
+
+        FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInAnonymously?key={firebase_api_key}"
+        
+        response = requests.post(FIREBASE_AUTH_URL, json={"returnSecureToken": True})
+        response_data = response.json()
+
+        if "error" in response_data:
+            return jsonify({"error": response_data["error"]["message"]}), 401
+
+        id_token = response_data.get("idToken")
 
         return jsonify({"token": id_token}), 200
 
