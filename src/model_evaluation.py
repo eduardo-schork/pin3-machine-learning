@@ -1,52 +1,31 @@
+from sklearn.metrics import classification_report, confusion_matrix
 import numpy as np
+
 from shared.machine_learning.load_latest_model import load_latest_model
-from shared.machine_learning.preprocess_image_set import preprocess_image_set
+from shared.machine_learning.preprocess_image_set import preprocess_test_set
 
 
-def evaluate_model(model, test_set):
-    predictions = model.predict(
-        test_set, steps=test_set.n // test_set.batch_size + 1, verbose=1
-    )
-    y_true = test_set.classes
-    y_pred = np.argmax(predictions, axis=1)
+def evaluate_model(model_type):
+    test_data = preprocess_test_set()
 
-    print(y_true)
-    print(y_pred)
+    model = load_latest_model(model_type)
+    Y_pred = model.predict(test_data)
 
-    accuracy = tf.keras.metrics.Accuracy()
-    precision = tf.keras.metrics.Precision()
-    recall = tf.keras.metrics.Recall()
-    f1_score = tf.keras.metrics.Mean()
+    print(Y_pred)
 
-    accuracy.update_state(y_true, y_pred)
-    precision.update_state(y_true, y_pred)
-    recall.update_state(y_true, y_pred)
+    y_pred = np.argmax(Y_pred, axis=1)
+    print("Confusion Matrix")
 
-    f1_score.update_state(
-        (
-            2
-            * (precision.result() * recall.result())
-            / (precision.result() + recall.result())
-        )
-    )
+    print(confusion_matrix(test_data.classes, y_pred))
+    print("Classification Report")
 
-    print("Accuracy: ", accuracy.result().numpy())
-    print("Precision: ", precision.result().numpy())
-    print("Recall: ", recall.result().numpy())
-    print("F1 Score: ", f1_score.result().numpy())
+    target_names = ["Peach", "Strawberry", "Pomegranate"]
+
+    print(classification_report(test_data.classes, y_pred, target_names=target_names))
 
 
-import tensorflow as tf
-import numpy as np
+print("Evaluating model Inceptionv3")
+evaluate_model("inceptionv3")
 
-if __name__ == "__main__":
-    test_dir = "dataset/test_set"
-
-    model_vgg16 = load_latest_model("vgg16")
-    model_inceptionv3 = load_latest_model("inceptionv3")
-
-    print("Avaliação do modelo InceptionV3:")
-    evaluate_model(model_inceptionv3, preprocess_image_set(test_dir))
-
-    print("Avaliação do modelo VGG16:")
-    evaluate_model(model_vgg16, preprocess_image_set(test_dir))
+print("Evaluating model Vgg16")
+evaluate_model("vgg16")

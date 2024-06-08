@@ -51,8 +51,8 @@ def post_feed():
         return jsonify({"error": "Image is required"}), 400
 
     user_id = request.form.get("user_id")
-    #send_notification_to_user(user_id)
-    
+    # send_notification_to_user(user_id)
+
     predicted_percentage = request.form.get("predicted_percentage")
     predicted_class = request.form.get("predicted_class")
     feedback_class = request.form.get("feedback_class")
@@ -91,6 +91,7 @@ def post_feed():
         print(str(e))
         return jsonify({"error": str(e)}), 500
 
+
 def send_notification_to_user(uid):
     console.log("oi")
     user_ref = db.reference("users").child(user_id)
@@ -102,13 +103,14 @@ def send_notification_to_user(uid):
             data={
                 "title": "Nova postagem",
                 "body": "Uma nova postagem foi feita.",
-                #"post_id": new_post.key  # Se necessário, você pode incluir o ID da postagem na notificação
+                # "post_id": new_post.key  # Se necessário, você pode incluir o ID da postagem na notificação
             },
             token=device_token,
         )
         # Enviar a notificação
         response = messaging.send(message)
         print("Successfully sent message:", response)
+
 
 @app.route("/get-posts", methods=["GET"])
 def get_posts():
@@ -270,15 +272,15 @@ def preprocess_image(img):
 @app.route("/predict", methods=["POST"])
 def predict_all_models():
     try:
-        uid = _getRequestAuthToken(request)
-        print(uid)
-        
+        # uid = _getRequestAuthToken(request)
+        # print(uid)
+
         img_array = preprocess_image(request.files.get("image"))
         if img_array is None:
             return jsonify({"error": "Imagem inválida"}), 400
 
-        vgg16_prediction = vgg16_model.predict(img_array)
-        vgg16_output = format_predict_output(vgg16_prediction[0])
+        # vgg16_prediction = vgg16_model.predict(img_array)
+        # vgg16_output = format_predict_output(vgg16_prediction[0])
 
         inceptionv3_prediction = inceptionv3_model.predict(img_array)
         inceptionv3_output = format_predict_output(inceptionv3_prediction[0])
@@ -287,7 +289,7 @@ def predict_all_models():
         convnet_output = format_predict_output(convnet_prediction[0])
 
         combined_output = {
-            "vgg16": vgg16_output,
+            # "vgg16": vgg16_output,
             "inceptionv3": inceptionv3_output,
             "convnet": convnet_output,
         }
@@ -298,19 +300,19 @@ def predict_all_models():
         return jsonify({"error": f"Erro ao realizar a previsão: {str(e)}"}), 500
 
 
-@app.route("/predict/vgg16", methods=["POST"])
-def predict_vgg16():
-    img_array = preprocess_image(request.files.get("image"))
-    if img_array is None:
-        return jsonify({"error": "Imagem inválida"}), 400
+# @app.route("/predict/vgg16", methods=["POST"])
+# def predict_vgg16():
+#     img_array = preprocess_image(request.files.get("image"))
+#     if img_array is None:
+#         return jsonify({"error": "Imagem inválida"}), 400
 
-    try:
-        prediction = vgg16_model.predict(img_array)
-        formatted_output = format_predict_output(prediction[0])
-        return jsonify(formatted_output)
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": f"Erro ao realizar a previsão: {str(e)}"}), 500
+#     try:
+#         prediction = vgg16_model.predict(img_array)
+#         formatted_output = format_predict_output(prediction[0])
+#         return jsonify(formatted_output)
+#     except Exception as e:
+#         traceback.print_exc()
+#         return jsonify({"error": f"Erro ao realizar a previsão: {str(e)}"}), 500
 
 
 @app.route("/predict/inceptionv3", methods=["POST"])
