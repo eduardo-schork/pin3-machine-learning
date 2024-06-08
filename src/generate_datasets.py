@@ -7,7 +7,8 @@ validation_set_folder_path = "../src/dataset/validation_set"
 test_set_folder_path = "../src/dataset/test_set"
 
 
-fruits_list = ["strawberry", "peach", "pomegranate"]
+fruits_list = ["peach", "pomegranate", "strawberry"]
+# fruits_list = ["strawberry", "peach", "pomegranate"]
 
 for fruit in fruits_list:
     os.makedirs(f"../assets/{fruit}", exist_ok=True)

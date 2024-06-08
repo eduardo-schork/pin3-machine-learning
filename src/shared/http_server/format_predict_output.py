@@ -1,5 +1,6 @@
 def format_predict_output(predictions):
-    classes = ["strawberry", "peach", "pomegranate"]
+    classes = ["peach", "pomegranate", "strawberry"]
+    # classes = ["strawberry", "peach", "pomegranate"]
 
     formatted_output = {
         "percentages": {
