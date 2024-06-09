@@ -3,13 +3,15 @@ import traceback
 import requests
 
 from flask_cors import CORS
-from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.preprocessing.image import img_to_array, load_img
+from tensorflow.image import resize
 
 from shared.http_server.format_predict_output import format_predict_output
 from shared.http_server.validate_image_input import validate_image_input
 from shared.machine_learning.load_latest_model import load_latest_model
 
 from flask import Flask, request, jsonify, render_template
+
 from firebase_admin import credentials, initialize_app, storage, db
 from google.cloud import storage as gcs
 
@@ -256,13 +258,14 @@ def preprocess_image(img):
         if not is_valid:
             return None
 
-        img_array = img_to_array(img)
+        # Certifique-se de que a imagem está no tamanho correto
+        img = img.resize((300, 300))
 
+        img_array = img_to_array(img)
         img_array = img_array.reshape(
             (1, img_array.shape[0], img_array.shape[1], img_array.shape[2])
         )
-
-        img_array = img_array / 255.0
+        img_array = img_array / 255.0  # Normalização
 
         return img_array
     except Exception as e:
@@ -279,19 +282,19 @@ def predict_all_models():
         if img_array is None:
             return jsonify({"error": "Imagem inválida"}), 400
 
-        # vgg16_prediction = vgg16_model.predict(img_array)
-        # vgg16_output = format_predict_output(vgg16_prediction[0])
+        vgg16_prediction = vgg16_model.predict(img_array)
+        vgg16_output = format_predict_output(vgg16_prediction[0])
 
         inceptionv3_prediction = inceptionv3_model.predict(img_array)
         inceptionv3_output = format_predict_output(inceptionv3_prediction[0])
 
-        convnet_prediction = convnet_model.predict(img_array)
-        convnet_output = format_predict_output(convnet_prediction[0])
+        # convnet_prediction = convnet_model.predict(img_array)
+        # convnet_output = format_predict_output(convnet_prediction[0])
 
         combined_output = {
-            # "vgg16": vgg16_output,
+            "vgg16": vgg16_output,
             "inceptionv3": inceptionv3_output,
-            "convnet": convnet_output,
+            # "convnet": convnet_output,
         }
 
         return jsonify(combined_output)
@@ -300,19 +303,19 @@ def predict_all_models():
         return jsonify({"error": f"Erro ao realizar a previsão: {str(e)}"}), 500
 
 
-# @app.route("/predict/vgg16", methods=["POST"])
-# def predict_vgg16():
-#     img_array = preprocess_image(request.files.get("image"))
-#     if img_array is None:
-#         return jsonify({"error": "Imagem inválida"}), 400
+@app.route("/predict/vgg16", methods=["POST"])
+def predict_vgg16():
+    img_array = preprocess_image(request.files.get("image"))
+    if img_array is None:
+        return jsonify({"error": "Imagem inválida"}), 400
 
-#     try:
-#         prediction = vgg16_model.predict(img_array)
-#         formatted_output = format_predict_output(prediction[0])
-#         return jsonify(formatted_output)
-#     except Exception as e:
-#         traceback.print_exc()
-#         return jsonify({"error": f"Erro ao realizar a previsão: {str(e)}"}), 500
+    try:
+        prediction = vgg16_model.predict(img_array)
+        formatted_output = format_predict_output(prediction[0])
+        return jsonify(formatted_output)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Erro ao realizar a previsão: {str(e)}"}), 500
 
 
 @app.route("/predict/inceptionv3", methods=["POST"])

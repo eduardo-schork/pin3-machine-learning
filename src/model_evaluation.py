@@ -11,16 +11,13 @@ def evaluate_model(model_type):
     model = load_latest_model(model_type)
     Y_pred = model.predict(test_data)
 
-    print(Y_pred)
-
     y_pred = np.argmax(Y_pred, axis=1)
     print("Confusion Matrix")
 
     print(confusion_matrix(test_data.classes, y_pred))
     print("Classification Report")
 
-    target_names = ["Peach", "Strawberry", "Pomegranate"]
-
+    target_names = ["Peach", "Pomegranate", "Strawberry"]
     print(classification_report(test_data.classes, y_pred, target_names=target_names))
 
 

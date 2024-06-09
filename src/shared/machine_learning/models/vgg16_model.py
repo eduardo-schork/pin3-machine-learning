@@ -11,22 +11,30 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 
 
-def craete_model():
+def create_model():
     base_model = VGG16(weights="imagenet", include_top=False)
 
     x = base_model.output
     x = GlobalAveragePooling2D()(x)
     x = Dense(1024, activation="relu")(x)
     x = Dropout(0.5)(x)
+
+    x = Dense(512, activation="relu")(x)
+    x = Dropout(0.5)(x)
     predictions = Dense(3, activation="softmax")(x)
 
     model = Model(inputs=base_model.input, outputs=predictions)
 
-    for layer in base_model.layers:
+    for layer in base_model.layers[:15]:
         layer.trainable = False
 
+    for layer in base_model.layers[15:]:
+        layer.trainable = True
+
     model.compile(
-        optimizer=Adam(lr=1e-4), loss="categorical_crossentropy", metrics=["accuracy"]
+        optimizer=Adam(lr=1e-4),
+        loss="categorical_crossentropy",
+        metrics=["accuracy"],
     )
 
     return model
@@ -45,14 +53,14 @@ def train_model():
     )
 
     print("Training VGG16 model")
-    model_vgg = craete_model()
+    model_vgg = create_model()
 
     model_vgg.fit(
         train_data,
         steps_per_epoch=train_data.samples // train_data.batch_size,
         validation_data=validation_data,
         validation_steps=validation_data.samples // validation_data.batch_size,
-        epochs=50,
+        epochs=30,
         callbacks=[reduce_lr, early_stopping],
     )
 

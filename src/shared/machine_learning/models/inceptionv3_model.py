@@ -19,6 +19,10 @@ def create_model():
     x = GlobalAveragePooling2D()(x)
     x = Dense(1024, activation="relu")(x)
     x = Dropout(0.5)(x)
+
+    x = Dense(512, activation="relu")(x)
+    x = Dropout(0.5)(x)
+
     predictions = Dense(3, activation="softmax")(x)
 
     model = Model(inputs=base_model.input, outputs=predictions)
@@ -40,9 +44,10 @@ def train_model():
     reduce_lr = ReduceLROnPlateau(
         monitor="val_loss", factor=0.2, patience=3, min_lr=1e-7
     )
-    early_stopping = EarlyStopping(
-        monitor="val_loss", patience=5, restore_best_weights=True
-    )
+
+    # early_stopping = EarlyStopping(
+    #     monitor="val_loss", patience=5, restore_best_weights=True
+    # )
 
     print("Training InceptionV3 model")
     model_inception = create_model()
@@ -52,8 +57,11 @@ def train_model():
         steps_per_epoch=train_data.samples // train_data.batch_size,
         validation_data=validation_data,
         validation_steps=validation_data.samples // validation_data.batch_size,
-        epochs=50,
-        callbacks=[reduce_lr, early_stopping],
+        epochs=30,
+        callbacks=[
+            reduce_lr,
+            #    early_stopping
+        ],
     )
 
     save_model(model_inception, "inceptionv3")
