@@ -1,51 +1,68 @@
-from shared.machine_learning.preprocess_image_set import preprocess_image_set
 from shared.machine_learning.save_model import save_model
+from shared.machine_learning.preprocess_image_set import (
+    preprocess_training_set,
+    preprocess_validation_set,
+)
 
+from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
 from tensorflow.keras.applications import VGG16
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Flatten, Dense, Dropout
-from tensorflow.keras.optimizers.legacy import Adam
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
 
 
-def create_model(num_classes):
-    base_model = VGG16(weights="imagenet", include_top=False, input_shape=(300, 300, 3))
+def create_model():
+    base_model = VGG16(weights="imagenet", include_top=False)
 
-    for layer in base_model.layers:
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(1024, activation="relu")(x)
+    x = Dropout(0.5)(x)
+
+    x = Dense(512, activation="relu")(x)
+    x = Dropout(0.5)(x)
+    predictions = Dense(3, activation="softmax")(x)
+
+    model = Model(inputs=base_model.input, outputs=predictions)
+
+    for layer in base_model.layers[:15]:
         layer.trainable = False
 
-    model = Sequential()
-
-    model.add(base_model)
-
-    model.add(Flatten())
-    model.add(Dense(256, activation="relu"))
-    model.add(Dropout(0.5))
-    model.add(Dense(128, activation="relu"))
-    model.add(Dropout(0.5))
-    model.add(Dense(num_classes, activation="softmax"))
-
-    adam_optimizer = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
+    for layer in base_model.layers[15:]:
+        layer.trainable = True
 
     model.compile(
-        optimizer=adam_optimizer, loss="categorical_crossentropy", metrics=["accuracy"]
+        optimizer=Adam(lr=1e-4),
+        loss="categorical_crossentropy",
+        metrics=["accuracy"],
     )
 
     return model
 
 
-def train_vgg16_model():
-    num_classes = 3
+def train_model():
+    train_data = preprocess_training_set()
+    validation_data = preprocess_validation_set()
 
-    vgg16_model = create_model(num_classes)
-
-    training_set = preprocess_image_set("dataset/training_set")
-    validation_set = preprocess_image_set("dataset/validation_set")
-
-    print("Treinando o modelo VGG16...")
-    vgg16_model.fit(
-        training_set,
-        epochs=25,
-        validation_data=validation_set,
+    reduce_lr = ReduceLROnPlateau(
+        monitor="val_loss", factor=0.2, patience=3, min_lr=1e-7
     )
 
-    save_model(vgg16_model, "vgg16")
+    early_stopping = EarlyStopping(
+        monitor="val_loss", patience=5, restore_best_weights=True
+    )
+
+    print("Training VGG16 model")
+    model_vgg = create_model()
+
+    model_vgg.fit(
+        train_data,
+        steps_per_epoch=train_data.samples // train_data.batch_size,
+        validation_data=validation_data,
+        validation_steps=validation_data.samples // validation_data.batch_size,
+        epochs=30,
+        callbacks=[reduce_lr, early_stopping],
+    )
+
+    save_model(model_vgg, "vgg16")
+    print("VGG16 saved")

@@ -3,13 +3,15 @@ import traceback
 import requests
 
 from flask_cors import CORS
-from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.preprocessing.image import img_to_array, load_img
+from tensorflow.image import resize
 
 from shared.http_server.format_predict_output import format_predict_output
 from shared.http_server.validate_image_input import validate_image_input
 from shared.machine_learning.load_latest_model import load_latest_model
 
 from flask import Flask, request, jsonify, render_template
+
 from firebase_admin import credentials, initialize_app, storage, db
 from google.cloud import storage as gcs
 
@@ -51,8 +53,8 @@ def post_feed():
         return jsonify({"error": "Image is required"}), 400
 
     user_id = request.form.get("user_id")
-    #send_notification_to_user(user_id)
-    
+    # send_notification_to_user(user_id)
+
     predicted_percentage = request.form.get("predicted_percentage")
     predicted_class = request.form.get("predicted_class")
     feedback_class = request.form.get("feedback_class")
@@ -91,6 +93,7 @@ def post_feed():
         print(str(e))
         return jsonify({"error": str(e)}), 500
 
+
 def send_notification_to_user(uid):
     console.log("oi")
     user_ref = db.reference("users").child(user_id)
@@ -102,13 +105,14 @@ def send_notification_to_user(uid):
             data={
                 "title": "Nova postagem",
                 "body": "Uma nova postagem foi feita.",
-                #"post_id": new_post.key  # Se necessário, você pode incluir o ID da postagem na notificação
+                # "post_id": new_post.key  # Se necessário, você pode incluir o ID da postagem na notificação
             },
             token=device_token,
         )
         # Enviar a notificação
         response = messaging.send(message)
         print("Successfully sent message:", response)
+
 
 @app.route("/get-posts", methods=["GET"])
 def get_posts():
@@ -277,13 +281,14 @@ def preprocess_image(img):
         if not is_valid:
             return None
 
-        img_array = img_to_array(img)
+        # Certifique-se de que a imagem está no tamanho correto
+        img = img.resize((300, 300))
 
+        img_array = img_to_array(img)
         img_array = img_array.reshape(
             (1, img_array.shape[0], img_array.shape[1], img_array.shape[2])
         )
-
-        img_array = img_array / 255.0
+        img_array = img_array / 255.0  # Normalização
 
         return img_array
     except Exception as e:
@@ -293,9 +298,9 @@ def preprocess_image(img):
 @app.route("/predict", methods=["POST"])
 def predict_all_models():
     try:
-        uid = _getRequestAuthToken(request)
-        print(uid)
-        
+        # uid = _getRequestAuthToken(request)
+        # print(uid)
+
         img_array = preprocess_image(request.files.get("image"))
         if img_array is None:
             return jsonify({"error": "Imagem inválida"}), 400
@@ -306,13 +311,13 @@ def predict_all_models():
         inceptionv3_prediction = inceptionv3_model.predict(img_array)
         inceptionv3_output = format_predict_output(inceptionv3_prediction[0])
 
-        convnet_prediction = convnet_model.predict(img_array)
-        convnet_output = format_predict_output(convnet_prediction[0])
+        # convnet_prediction = convnet_model.predict(img_array)
+        # convnet_output = format_predict_output(convnet_prediction[0])
 
         combined_output = {
             "vgg16": vgg16_output,
             "inceptionv3": inceptionv3_output,
-            "convnet": convnet_output,
+            # "convnet": convnet_output,
         }
 
         return jsonify(combined_output)

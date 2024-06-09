@@ -1,68 +1,28 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
 from sklearn.metrics import classification_report, confusion_matrix
+import numpy as np
 
 from shared.machine_learning.load_latest_model import load_latest_model
-from shared.machine_learning.preprocess_image_set import (
-    preprocess_image_set,
-    preprocess_validation_set_convnet,
-)
+from shared.machine_learning.preprocess_image_set import preprocess_test_set
 
 
-def evaluate_model(model, test_generator):
-    evaluation = model.evaluate(test_generator, verbose=1)
+def evaluate_model(model_type):
+    test_data = preprocess_test_set()
 
-    predictions = model.predict(test_generator)
+    model = load_latest_model(model_type)
+    Y_pred = model.predict(test_data)
 
-    predicted_classes = np.argmax(predictions, axis=1)
+    y_pred = np.argmax(Y_pred, axis=1)
+    print("Confusion Matrix")
 
-    true_classes = test_generator.classes
+    print(confusion_matrix(test_data.classes, y_pred))
+    print("Classification Report")
 
-    class_names = list(test_generator.class_indices.keys())
-    print(
-        "Relatório de Classificação:\n",
-        classification_report(
-            true_classes, predicted_classes, target_names=class_names
-        ),
-    )
-
-    cm = confusion_matrix(true_classes, predicted_classes)
-    print("Matriz de Confusão:\n", cm)
-
-    plot_confusion_matrix(cm, class_names)
+    target_names = ["Peach", "Pomegranate", "Strawberry"]
+    print(classification_report(test_data.classes, y_pred, target_names=target_names))
 
 
-def plot_confusion_matrix(cm, class_names):
-    plt.figure(figsize=(8, 8))
-    plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
-    plt.title("Matriz de Confusão")
-    plt.colorbar()
-    tick_marks = np.arange(len(class_names))
-    plt.xticks(tick_marks, class_names, rotation=45)
-    plt.yticks(tick_marks, class_names)
+print("Evaluating model Inceptionv3")
+evaluate_model("inceptionv3")
 
-    plt.xlabel("Classe Predita")
-    plt.ylabel("Classe Real")
-    plt.show()
-
-
-if __name__ == "__main__":
-    # Diretórios dos conjuntos de teste
-    test_dir = "dataset/test_set"
-
-    model_vgg16 = load_latest_model("vgg16")
-    model_inceptionv3 = load_latest_model("inceptionv3")
-    model_convnet = load_latest_model("convnet")
-
-    test_set = preprocess_image_set(test_dir)
-
-    print("\nAvaliação do Modelo VGG16:")
-    evaluate_model(model_vgg16, test_set)
-
-    print("\nAvaliação do Modelo InceptionV3:")
-    evaluate_model(model_inceptionv3, test_set)
-
-    print("\nAvaliação do Modelo convnet:")
-    convnet_test_set = preprocess_validation_set_convnet(test_dir)
-    evaluate_model(model_convnet, convnet_test_set)
+print("Evaluating model Vgg16")
+evaluate_model("vgg16")
