@@ -242,12 +242,16 @@ def anonymSign():
         with open(file_path, "r") as file:
             firebase_api_key = json.load(file)["apiKey"]
 
-        FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInAnonymously?key={firebase_api_key}"
-        
-        response = requests.post(FIREBASE_AUTH_URL, json={"returnSecureToken": True})
+        FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={firebase_api_key}"
+        response = requests.post(
+            FIREBASE_AUTH_URL,
+            json={"returnSecureToken": True}
+        )
+
         response_data = response.json()
 
         if "error" in response_data:
+            print(response_data)
             return jsonify({"error": response_data["error"]["message"]}), 401
 
         id_token = response_data.get("idToken")
