@@ -26,7 +26,7 @@ cred = credentials.Certificate("./service-account-key.json")
 firebase_admin.initialize_app(
     cred,
     {
-        "storageBucket": "gs://pin3-42a6f.appspot.com",
+        "storageBucket": "gs://pin3-42a6f.appspot.com/post-images",
         "databaseURL": "https://pin3-42a6f-default-rtdb.firebaseio.com/",
     },
 )
@@ -39,55 +39,53 @@ app = Flask(__name__)
 
 CORS(
     app,
-    origins="http://192.168.1.13:3000",
+    origins="http://192.168.0.111:3000",
     methods=["GET", "POST", "OPTIONS"],
     allow_headers="*",
 )
 
-
 @app.route("/post-feed", methods=["POST"])
 def post_feed():
-    image = request.files.get["image"]
-    if image is null:
-        print("Image is required")
-        return jsonify({"error": "Image is required"}), 400
-
-    user_id = request.form.get("user_id")
-    # send_notification_to_user(user_id)
-
-    predicted_percentage = request.form.get("predicted_percentage")
-    predicted_class = request.form.get("predicted_class")
-    feedback_class = request.form.get("feedback_class")
-    model_type = request.form.get("model_type")
-
-    if (
-        not user_id
-        or not predicted_percentage
-        or not predicted_class
-        or not feedback_class
-        or not model_type
-    ):
-        print("All fields are required")
-        return jsonify({"error": "All fields are required"}), 400
-
     try:
-        blob = bucket.blob(f"{user_id}/{image.filename}")
-        blob.upload_from_file(image, content_type=image.content_type)
+        data = request.get_json()
+        image_content = data['files'].get("image")
+        user_id = _getRequestAuthToken(request)
+
+        if image_content is None:
+            print("Image is required")
+            return jsonify({"error": "Image is required"}), 400
+
+        predicted_percentage = data.get("predicted_percentage")
+        predicted_class = data.get("predicted_class")
+        model_type = data.get("model_type")
+
+        if (
+            not user_id
+            or not predicted_percentage
+            or not predicted_class
+            or not model_type
+        ):
+            print("All fields are required")
+            return jsonify({"error": "All fields are required"}), 400
+
+        print(f"Received image content: {image_content}")
+
+        # Salvar a imagem no bucket do Google Cloud Storage
+        image_name = f"{user_id}/{image_content}"
+        blob = bucket.blob(image_content)
         image_url = blob.public_url
 
+        # Armazenar a URL da imagem no banco de dados
         ref = db.reference("tb_feed")
-        new_post = ref.push(
-            {
-                "user_id": user_id,
-                "image_url": image_url,
-                "predicted_percentage": predicted_percentage,
-                "predicted_class": predicted_class,
-                "feedback_class": feedback_class,
-                "model_type": model_type,
-            }
-        )
-
-        return jsonify({"status": "success", "post_id": new_post.key}), 201
+        new_post = ref.push({
+            "user_id": user_id,
+            "image_url": image_url,
+            "predicted_percentage": predicted_percentage,
+            "predicted_class": predicted_class,
+            "model_type": model_type,
+        })
+        
+        return jsonify({"status": "success"}), 201
 
     except Exception as e:
         print(str(e))
@@ -117,6 +115,7 @@ def send_notification_to_user(uid):
 @app.route("/get-posts", methods=["GET"])
 def get_posts():
     try:
+        uid = _getRequestAuthToken(request)
         ref = db.reference("tb_feed")
         posts = ref.get()
 
@@ -298,9 +297,9 @@ def preprocess_image(img):
 @app.route("/predict", methods=["POST"])
 def predict_all_models():
     try:
-        # uid = _getRequestAuthToken(request)
-        # print(uid)
-
+        uid = _getRequestAuthToken(request)
+        print(uid)
+        print(request.files.get("image"))
         img_array = preprocess_image(request.files.get("image"))
         if img_array is None:
             return jsonify({"error": "Imagem inválida"}), 400
@@ -343,6 +342,7 @@ def predict_vgg16():
 
 @app.route("/predict/inceptionv3", methods=["POST"])
 def predict_inceptionv3():
+    print(request.files.get("image"))
     img_array = preprocess_image(request.files.get("image"))
     if img_array is None:
         return jsonify({"error": "Imagem inválida"}), 400
