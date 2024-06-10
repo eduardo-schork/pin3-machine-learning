@@ -1,0 +1,9 @@
+*.log
+*.gz
+*.csv
+tests/
+docs/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
