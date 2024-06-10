@@ -130,11 +130,20 @@ python run_server.py
 ./src
 ├── shared
 │   ├── http_server
-│   │   ├── format_predict_output.py
-│   │   ├── http_server.py
+|   |   ├── controllers
+│   │   │   ├── auth_controller.py
+│   │   │   ├── post_controller.py
+│   │   │   └── predict_controller.py
+|   |   ├── services
+│   │   │   ├── firebase_service.py
+│   │   │   └── image_service.py
+|   |   ├── utils
+│   │   │   ├── __init__.py
+│   │   │   ├── validate_image_input.py
+│   │   │   └── format_predict_output.py
 │   │   ├── templates
 │   │   │   └── index.html
-│   │   └── validate_image_input.py
+│   │   ├── http_server.py
 │   └── machine_learning
 │       ├── models
 │       │   ├── inceptionv3_model.py
