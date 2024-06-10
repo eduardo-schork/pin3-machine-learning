@@ -6,8 +6,6 @@ Este projeto visa criar um sistema de classificação de frutas usando modelos d
 ### Algoritmos de Machine Learning
 O projeto utiliza os seguintes algoritmos de ML:
 
-**ConvNet** (Rede Neural Convolucional): Modelo de redes neurais especializado em processamento de imagens.
-
 **InceptionV3**: Arquitetura de rede neural profunda pré-treinada para classificação de imagens.
 
 **VGG16**: Modelo de rede neural pré-treinado convolucional para classificação de imagens.
@@ -20,10 +18,6 @@ A API consiste em três endpoints principais:
 **/predict/vgg16**: Realiza previsões utilizando o modelo VGG16.
 
 **/predict/inceptionv3**: Realiza previsões utilizando o modelo InceptionV3.
-
-**/predict/convnet**: Realiza previsões utilizando o modelo ConvNet.
-
-Envie uma imagem via POST com a chave `image` para cada endpoint para obter previsões.
 
 ### Instalação do Python (Windows e macOS)
 Antes de começar, certifique-se de ter o Python instalado em seu sistema. Siga as instruções abaixo com base no seu sistema operacional.
@@ -92,26 +86,8 @@ pip install -r requirements.txt
 
 Este script gera conjuntos de dados para treinamento, validação e testes a partir de imagens de frutas. Certifique-se de organizar as imagens corretamente antes de executar o script. 
 
-O Script buscará as imagens (fornecidas pelo professor) na raiz do projeto dentro de `assets`, a estrutura de arquivos dentro de assets deve ser as seguinte: 
-
-```bash
-./pin3-machine-learning
-├── assets
-│   ├── pomegranate
-│   │   ├── nome_da_imagem.jpg
-│   │   ├── nome_da_imagem.jpg
-│   │   └── ...
-│   ├── peach
-│   │   ├── nome_da_imagem.jpg
-│   │   ├── nome_da_imagem.jpg
-│   │   └── ...
-│   └── strawberry
-│       ├── nome_da_imagem.jpg
-│       ├── nome_da_imagem.jpg
-│       └── ...
-...
+O Script buscará as imagens (fornecidas pelo professor) na raiz do projeto dentro de `assets`.
 ```
-
 Comando para rodar o script:
 
 ```bash
@@ -161,7 +137,6 @@ python run_server.py
 │   │   └── validate_image_input.py
 │   └── machine_learning
 │       ├── models
-│       │   ├── convnet_model.py
 │       │   ├── inceptionv3_model.py
 │       │   └── vgg16_model.py
 │       ├── preprocess_image_set.py
@@ -170,20 +145,15 @@ python run_server.py
 ├── generate_datasets.py
 ├── model_evaluation.py
 ├── run_server.py
-└── train_models.py
+├── train_model_inception.py
+└── train_model_vgg.py
 ```
 * **generate_datasets.py**: Gera conjuntos de dados.
 * **train_models.py**: Treina modelos de ML.
-
 * **model_evaluation.py**: Avalia o desempenho dos modelos.
-
 * **run_server.py**: Inicia o servidor HTTP.
-
 * **shared**: Módulo compartilhado.
-
     * **dataset**: Pasta contendo os datasets de treinamento, validação e testes gerados pelo script `generate_datasets.py`.
-
     * **http_server**: Módulo para o servidor HTTP.
-
     * **machine_learning**: Módulo para o treinamento e avaliação de modelos de ML.
 
