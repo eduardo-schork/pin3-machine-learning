@@ -87,24 +87,34 @@ pip install -r requirements.txt
 Este script gera conjuntos de dados para treinamento, validação e testes a partir de imagens de frutas. Certifique-se de organizar as imagens corretamente antes de executar o script. 
 
 O Script buscará as imagens (fornecidas pelo professor) na raiz do projeto dentro de `assets`.
-```
+
 Comando para rodar o script:
 
 ```bash
 python generate_datasets.py
 ```
 
-2. train_models.py
+2. train_model_vgg.py
 
-Este script treina modelos de ML utilizando diferentes algoritmos para classificar frutas. Os modelos treinados são salvos para uso posterior.
+Este script treina o modelo de ML VGG16. Os modelos treinados são salvos para uso posterior.
 
 Comando para rodar o script:
 
 ```bash
-python train_models.py
+python train_model_vgg.py
 ```
 
-3. model_evaluation.py
+3. train_model_inception.py
+
+Este script treina o modelo de ML InceptionV3. Os modelos treinados são salvos para uso posterior.
+
+Comando para rodar o script:
+
+```bash
+python train_model_inception.py
+```
+
+4. model_evaluation.py
 
 Este script avalia o desempenho dos modelos treinados mais recentes com base em conjuntos de dados de teste.
 
@@ -114,7 +124,7 @@ Comando para rodar o script:
 python model_evaluation.py
 ```
 
-4. run_server.py
+5. run_server.py
 
 Este script inicia um servidor HTTP que permite realizar previsões de classificação de frutas através de uma API.
 
@@ -122,6 +132,16 @@ Comando para rodar o script:
 
 ```bash
 python run_server.py
+```
+
+6. train_models.py
+
+Este script treina modelos de ML utilizando diferentes algoritmos para classificar frutas. Os modelos treinados são salvos para uso posterior.
+
+Comando para rodar o script:
+
+```bash
+python train_models.py
 ```
 
 ### Estrutura do Projeto
@@ -159,6 +179,8 @@ python run_server.py
 ```
 * **generate_datasets.py**: Gera conjuntos de dados.
 * **train_models.py**: Treina modelos de ML.
+* **train_model_vgg.py**: Treina modelo VGG16.
+* **train_model_inception.py**: Treina modelo InceptionV3.
 * **model_evaluation.py**: Avalia o desempenho dos modelos.
 * **run_server.py**: Inicia o servidor HTTP.
 * **shared**: Módulo compartilhado.
