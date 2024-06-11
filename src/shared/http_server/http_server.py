@@ -9,7 +9,6 @@ def create_app():
     app = Flask(__name__)
     CORS(
         app,
-        # origins="http://192.168.0.111:3000",
         methods=["GET", "POST", "OPTIONS"],
         allow_headers="*",
     )

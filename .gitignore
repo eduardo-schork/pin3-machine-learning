@@ -6,3 +6,5 @@ __pycache__/
 
 service-account-key.json
 google-services-key.json
+
+**.pem

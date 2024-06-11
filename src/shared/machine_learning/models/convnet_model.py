@@ -18,6 +18,7 @@ from tensorflow.keras.layers import (
 )
 
 
+# DEPRECIATED
 def create_model(num_classes):
     model = Sequential()
     model.add(

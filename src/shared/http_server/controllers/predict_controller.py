@@ -7,7 +7,9 @@ predict_bp = Blueprint("predict_bp", __name__)
 
 vgg16_model = load_latest_model("vgg16")
 inceptionv3_model = load_latest_model("inceptionv3")
-convnet_model = load_latest_model("convnet")
+
+# DEPRECIATED
+# convnet_model = load_latest_model("convnet")
 
 
 @predict_bp.route("/predict", methods=["POST"])
@@ -57,15 +59,16 @@ def predict_inceptionv3():
         return jsonify({"error": f"Erro ao realizar a previsão: {str(e)}"}), 500
 
 
-@predict_bp.route("/predict/convnet", methods=["POST"])
-def predict_convnet():
-    img_array = preprocess_image(request.files.get("image"))
-    if img_array is None:
-        return jsonify({"error": "Imagem inválida"}), 400
+# DEPRECIATED
+# @predict_bp.route("/predict/convnet", methods=["POST"])
+# def predict_convnet():
+#     img_array = preprocess_image(request.files.get("image"))
+#     if img_array is None:
+#         return jsonify({"error": "Imagem inválida"}), 400
 
-    try:
-        prediction = convnet_model.predict(img_array)
-        formatted_output = format_predict_output(prediction[0])
-        return jsonify(formatted_output)
-    except Exception as e:
-        return jsonify({"error": f"Erro ao realizar a previsão: {str(e)}"}), 500
+#     try:
+#         prediction = convnet_model.predict(img_array)
+#         formatted_output = format_predict_output(prediction[0])
+#         return jsonify(formatted_output)
+#     except Exception as e:
+#         return jsonify({"error": f"Erro ao realizar a previsão: {str(e)}"}), 500
