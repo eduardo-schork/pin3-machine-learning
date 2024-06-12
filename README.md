@@ -20,7 +20,7 @@ A API consiste em três endpoints principais:
 **/predict/inceptionv3**: Realiza previsões utilizando o modelo InceptionV3.
 
 ### Instalação do Python (Windows e macOS)
-Antes de começar, certifique-se de ter o Python instalado em seu sistema. Siga as instruções abaixo com base no seu sistema operacional.
+Antes de começar, certifique-se de ter o Python instalado em seu sistema, a versão do Python instalada deve ser `<= 3.11`. Siga as instruções abaixo com base no seu sistema operacional.
 
 #### Windows
 1. Baixe o instalador do Python do site oficial.
@@ -51,7 +51,7 @@ git clone https://github.com/eduardo-schork/pin3-machine-learning
 cd pin3-machine-learning
 ```
 
-Crie a estrutura de pastas necessária para o projeto:
+Crie a estrutura de pastas necessária para o projeto (caso já exista a estrutura de pastas de `trained_model` no projeto o passo abaixo não é necessário):
 ```bash
 # Para Linux/Mac
 # na pasta raiz do projeto `pin3-machine-learning`
@@ -85,6 +85,8 @@ pip install -r requirements.txt
 1. generate_datasets.py
 
 Este script gera conjuntos de dados para treinamento, validação e testes a partir de imagens de frutas. Certifique-se de organizar as imagens corretamente antes de executar o script. 
+
+Caso já exista a pasta `datasets` criada e populada no projeto não é necessário rodar o script.
 
 O Script buscará as imagens (fornecidas pelo professor) na raiz do projeto dentro de `assets`.
 
@@ -147,7 +149,7 @@ python train_models.py
 ### Estrutura do Projeto
 
 ```bash
-./src
+./**src**
 ├── shared
 │   ├── http_server
 |   |   ├── controllers
